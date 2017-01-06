@@ -84,11 +84,11 @@ public class TestTradingDynamicPlacement {
 	@After
 	public void showDuration(){
 		Date now = new Date();
-		System.out.println("time lapsed:"+(now.getTime() - begin.getTime())/1000);
+		print("time lapsed:"+(now.getTime() - begin.getTime())/1000);
 	}
 	
 	private void print(String s){
-		System.out.println(s);
+		PrintUtil.print(s);
 	}
 	
 	private AtomicInteger _tradeCount = new AtomicInteger();
@@ -163,9 +163,17 @@ public class TestTradingDynamicPlacement {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testTradingPlacment() throws Exception{	
-		int problemSize =10;
-		PrintUtil.setLogName("tradingPlacment-control-nn-01-"+String.format("%02d", problemSize));
+	public void testTradingPlacment() throws Exception{
+		int problemSize = 10;
+		boolean dynamic = false;
+		boolean networkAware = false;
+		int dynamicVmStartingNumber = 200;
+		doTradingPlacment(problemSize, dynamic, networkAware, dynamicVmStartingNumber);
+	}
+	
+	public void doTradingPlacment(int problemSize, boolean dynamic, boolean networkAware, int dynamicVmStartingNumber) throws Exception{	
+		
+		PrintUtil.setLogName("tradingPlacment-scale-"+String.format("%02d", problemSize)+"-networkAware-" + networkAware);
 		int scale = 50 * problemSize;
 		final MigrationProblem problem = getMigrationProblem(scale);
 		print(problem.getProblemInfo());
@@ -181,10 +189,10 @@ public class TestTradingDynamicPlacement {
 		});
 		market.setTradingInterval(10);
 		int tradeNo = 500 * problemSize;
-		boolean dynamic = false;
+		
 		boolean createNewVMs = false;
 		market.setTradeNumber(tradeNo);
-		boolean networkAware = false;
+		
 		for (int i=0;i<problem.getPmCount();i++){
 			PM pm = problem.getPM(i);
 			PmAgent agent = new PmAgent(networkAware);
@@ -199,9 +207,10 @@ public class TestTradingDynamicPlacement {
 		int doneCount  = -1;
 		int newVMs = 0;
 		
+		
 		while(true){
 			
-			if(dynamic && getTradeCount()>200 && getTradeCount()%5 == 0 && getTradeCount()!=doneCount){
+			if(dynamic && getTradeCount()> dynamicVmStartingNumber && getTradeCount()%5 == 0 && getTradeCount()!=doneCount){
 				int dynNumber = 2;
 				removeVMs(problem, dynNumber, scale);
 				
@@ -228,9 +237,17 @@ public class TestTradingDynamicPlacement {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testFFDPlacment() throws Exception{		
+	public void testFFDPlacment() throws Exception{
+		int problemSize = 1;
+		boolean dynamic = true;
+		int dynamicVmStartingNumber = 200;
+		doFFDPlacment(problemSize, dynamic, dynamicVmStartingNumber);
+	}
+	
+	public void doFFDPlacment(int problemSize, boolean dynamic, int dynamicVmStartingNumber) throws Exception{	
 		PrintUtil.setLogName("ffdPlacment");
-		int scale = 50;
+		PrintUtil.setLogName("ffdPlacment-scale-"+String.format("%02d", problemSize));
+		int scale = 50 * problemSize;
 		final MigrationProblem problem = getMigrationProblem(scale);
 		print(problem.getProblemInfo());
 		FFDDispatcher ffd = new FFDDispatcher(new Callback() {
@@ -244,8 +261,7 @@ public class TestTradingDynamicPlacement {
 			}
 		});
 		ffd.setTradingInterval(50);
-		int tradeNo=600;
-		boolean dynamic=true;
+		int tradeNo=600 * problemSize;
 		boolean createNewVMs= false;
 		ffd.setTradeNumber(tradeNo);
 		boolean networkAware = false;
@@ -269,7 +285,7 @@ public class TestTradingDynamicPlacement {
 		
 		while(true){
 			
-			if(dynamic && getTradeCount()> 200 && getTradeCount()%5 == 0 && getTradeCount()!=doneCount){	
+			if(dynamic && getTradeCount()> dynamicVmStartingNumber && getTradeCount()%5 == 0 && getTradeCount()!=doneCount){	
 				removeVMs(problem, 2, scale);
 				
 				for(int i=0;i<2;i++){
@@ -294,10 +310,18 @@ public class TestTradingDynamicPlacement {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testTradingPlacmentAccrossGrps() throws Exception{	
+	public void testTradingPlacmentAccrossGrps() throws Exception{
 		int problemSize = 10;
+		boolean dynamic = false;
+		boolean networkAware = false;
+		int dynamicVmStartingNumber = 200;
+		doTradingPlacmentAccrossGrps(problemSize, dynamic, networkAware, dynamicVmStartingNumber);
+	}
+	
+	public void doTradingPlacmentAccrossGrps(int problemSize, boolean dynamic, boolean networkAware, int dynamicVmStartingNumber) throws Exception{	
+		
 		ArrayList<PmAgent> pmList = new ArrayList<PmAgent>();
-		PrintUtil.setLogName("tradingPlacmentAccossGrps-scale-nn-01-"+String.format("%02d", problemSize));
+		PrintUtil.setLogName("tradingPlacmentAccossGrps-scale-"+String.format("%02d", problemSize)+"-networkAware-" + networkAware);
 		int scale = 50 * problemSize;
 		final MigrationProblem problem = getMigrationProblem(scale);
 		print(problem.getProblemInfo());
@@ -323,11 +347,11 @@ public class TestTradingDynamicPlacement {
 		market1.setTradingInterval(10);
 		market2.setTradingInterval(10);
 		int tradeNo = 600 * problemSize;
-		boolean dynamic = false;
+		
 		boolean createNewVMs = false;
 		market1.setTradeNumber(tradeNo);
 		market2.setTradeNumber(tradeNo);
-		boolean networkAware = false;
+
 		int halfPMCount = problem.getPmCount() / 2;
 		for (int i=0;i<problem.getPmCount();i++){
 			PM pm = problem.getPM(i);
@@ -352,7 +376,7 @@ public class TestTradingDynamicPlacement {
 		
 		while(true){
 			
-			if(dynamic && getTradeCount()>200 && getTradeCount()%5 == 0 && getTradeCount()!=doneCount){
+			if(dynamic && getTradeCount()>dynamicVmStartingNumber && getTradeCount()%5 == 0 && getTradeCount()!=doneCount){
 				int dynNumber = 2;
 				removeVMs(problem, dynNumber, scale);
 				
